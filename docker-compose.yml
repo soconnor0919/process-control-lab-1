@@ -1,0 +1,29 @@
+services:
+  lab-app:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        # Install system dependencies for matplotlib
+        RUN apt-get update && apt-get install -y \
+            build-essential \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # Install Python dependencies directly
+        RUN pip install --no-cache-dir \
+            streamlit \
+            pandas \
+            matplotlib \
+            openpyxl \
+            scipy
+            
+        COPY . .
+        
+        EXPOSE 8501
+        
+        # Streamlit needs to know it's behind a proxy (Coolify/Nginx)
+        ENTRYPOINT ["streamlit", "run", "gui_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    environment:
+      - VIRTUAL_PORT=8501
+    restart: always
